@@ -1,117 +1,68 @@
-import React from 'react';
-import { Route, Routes, useLocation } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
-import Layout from './components/layout/Layout';
-import MainLayout from './components/layout/MainLayout';
-import Dashboard from './pages/Dashboard';
-import Employees from './pages/Employees';
-import AddEmployee from './pages/Employees/AddEmployee';
-import ViewEmployee from './pages/Employees/ViewEmployee';
-import PayrollProcess from './pages/PayrollProcess';
-import Reports from './pages/Reports';
-import TaxFiling from './pages/TaxFiling';
-import Settings from './pages/Settings';
-import EmployeePortal from './pages/Employee/EmployeePortal';
-import Login from './pages/auth/Login';
-import Register from './pages/auth/Register';
-import Blog from './pages/Blog';
-import BlogPost from './pages/Blog/BlogPost';
-import NewPost from './pages/Blog/NewPost';
-import EditPost from './pages/Blog/EditPost';
-import AdminDashboard from './pages/Blog/AdminDashboard';
-import PrivacyPolicy from './pages/legal/PrivacyPolicy';
-import Terms from './pages/legal/Terms';
-import CompanySetup from './pages/CompanySetup';
-import ProtectedRoute from './components/auth/ProtectedRoute';
-import LandingPage from './pages/LandingPage';
-import FAQ from './pages/FAQ';
-import TimeTracking from './pages/Employee/TimeTracking';
-import Benefits from './pages/Employee/Benefits';
-import Features from './pages/Features';
-import Pricing from './pages/Pricing';
-import MockAuth from './pages/auth/MockAuth';
-import { useAuth } from './contexts/AuthContext';
+import { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
+import { Toaster } from 'react-hot-toast';
+import { Auth } from './components/Auth';
+import { Dashboard } from './pages/Dashboard';
+import { SuperAdmin } from './pages/admin/SuperAdmin';
+import { TestArea } from './pages/admin/TestArea';
+import { useAuthStore } from './lib/store';
 
-function AppRoutes() {
-  const { user } = useAuth();
-  const location = useLocation();
+function PrivateRoute({ children }: { children: React.ReactNode }) {
+  const user = useAuthStore((state) => state.user);
+  return user ? <>{children}</> : <Navigate to="/auth" />;
+}
+
+function App() {
+  const initialize = useAuthStore((state) => state.initialize);
+  const loading = useAuthStore((state) => state.loading);
+
+  useEffect(() => {
+    initialize();
+  }, [initialize]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
+      </div>
+    );
+  }
 
   return (
-    <Routes>
-      {/* Public routes with MainLayout */}
-      <Route element={<MainLayout />}>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/features" element={<Features />} />
-        <Route path="/pricing" element={<Pricing />} />
-        <Route path="/blog" element={<Blog />} />
-        <Route path="/blog/:id" element={<BlogPost />} />
-        <Route path="/privacy" element={<PrivacyPolicy />} />
-        <Route path="/terms" element={<Terms />} />
-        <Route path="/faq" element={<FAQ />} />
-      </Route>
-
-      {/* Auth routes */}
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/mock-auth" element={<MockAuth />} />
-      
-      {/* Protected routes */}
-      <Route path="/setup" element={
-        <ProtectedRoute isAuthenticated={!!user}>
-          <CompanySetup />
-        </ProtectedRoute>
-      } />
-      
-      {/* Admin routes */}
-      <Route path="/app" element={
-        <ProtectedRoute isAuthenticated={!!user}>
-          <Layout />
-        </ProtectedRoute>
-      }>
-        <Route index element={<Dashboard />} />
-        <Route path="employees" element={<Employees />} />
-        <Route path="employees/add" element={<AddEmployee />} />
-        <Route path="employees/:id" element={<ViewEmployee />} />
-        <Route path="payroll" element={<PayrollProcess />} />
-        <Route path="reports" element={<Reports />} />
-        <Route path="tax-filing" element={<TaxFiling />} />
-        <Route path="settings" element={<Settings />} />
-        <Route path="blog">
-          <Route index element={<AdminDashboard />} />
-          <Route path="new" element={<NewPost />} />
-          <Route path="edit/:id" element={<EditPost />} />
-        </Route>
-      </Route>
-      
-      {/* Employee portal */}
-      <Route path="/employee" element={
-        <ProtectedRoute isAuthenticated={!!user}>
-          <EmployeePortal />
-        </ProtectedRoute>
-      } />
-      
-      <Route path="/employee/timesheet" element={
-        <ProtectedRoute isAuthenticated={!!user}>
-          <TimeTracking />
-        </ProtectedRoute>
-      } />
-      
-      <Route path="/employee/benefits" element={
-        <ProtectedRoute isAuthenticated={!!user}>
-          <Benefits />
-        </ProtectedRoute>
-      } />
-      
-      {/* Fallback route */}
-      <Route path="*" element={<div>Page not found</div>} />
-    </Routes>
+    <HelmetProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/auth" element={<Auth />} />
+          <Route
+            path="/"
+            element={
+              <PrivateRoute>
+                <Dashboard />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <PrivateRoute>
+                <SuperAdmin />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/admin/test"
+            element={
+              <PrivateRoute>
+                <TestArea />
+              </PrivateRoute>
+            }
+          />
+        </Routes>
+      </BrowserRouter>
+      <Toaster position="top-right" />
+    </HelmetProvider>
   );
 }
 
-export default function App() {
-  return (
-    <AuthProvider>
-      <AppRoutes />
-    </AuthProvider>
-  );
-}
+export default App;
