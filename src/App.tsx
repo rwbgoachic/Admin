@@ -1,68 +1,53 @@
-import { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { HelmetProvider } from 'react-helmet-async';
-import { Toaster } from 'react-hot-toast';
-import { Auth } from './components/Auth';
-import { Dashboard } from './pages/Dashboard';
-import { SuperAdmin } from './pages/admin/SuperAdmin';
-import { TestArea } from './pages/admin/TestArea';
-import { useAuthStore } from './lib/store';
-
-function PrivateRoute({ children }: { children: React.ReactNode }) {
-  const user = useAuthStore((state) => state.user);
-  return user ? <>{children}</> : <Navigate to="/auth" />;
-}
+import { useEffect, useState } from 'react'
+import { syncManager } from './lib/syncManager'
+import { addTransaction } from './lib/indexedDB'
+import './App.css'
 
 function App() {
-  const initialize = useAuthStore((state) => state.initialize);
-  const loading = useAuthStore((state) => state.loading);
+  const [isOnline, setIsOnline] = useState(navigator.onLine)
 
   useEffect(() => {
-    initialize();
-  }, [initialize]);
+    const handleOnline = () => setIsOnline(true)
+    const handleOffline = () => setIsOnline(false)
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
-      </div>
-    );
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
+
+    // Start sync manager
+    syncManager.start()
+
+    return () => {
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
+      syncManager.stop()
+    }
+  }, [])
+
+  const handleAddTransaction = async () => {
+    try {
+      const transaction = {
+        amount: 100,
+        description: 'Test transaction',
+        timestamp: new Date().toISOString()
+      }
+      
+      await addTransaction('POS_TRANSACTION', transaction)
+    } catch (error) {
+      console.error('Error adding transaction:', error)
+    }
   }
 
   return (
-    <HelmetProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/auth" element={<Auth />} />
-          <Route
-            path="/"
-            element={
-              <PrivateRoute>
-                <Dashboard />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/admin"
-            element={
-              <PrivateRoute>
-                <SuperAdmin />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/admin/test"
-            element={
-              <PrivateRoute>
-                <TestArea />
-              </PrivateRoute>
-            }
-          />
-        </Routes>
-      </BrowserRouter>
-      <Toaster position="top-right" />
-    </HelmetProvider>
-  );
+    <div className="container">
+      <h1>Hybrid Database Demo</h1>
+      <div className="status">
+        Network Status: {isOnline ? 'Online' : 'Offline'}
+      </div>
+      <button onClick={handleAddTransaction}>
+        Add Test Transaction
+      </button>
+    </div>
+  )
 }
 
-export default App;
+export default App

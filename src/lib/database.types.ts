@@ -1,4 +1,4 @@
-type Json =
+export type Json =
   | string
   | number
   | boolean
@@ -9,97 +9,67 @@ type Json =
 export interface Database {
   public: {
     Tables: {
-      companies: {
+      pos_transactions: {
         Row: {
           id: string
-          name: string
-          ein: string
-          address: string | null
-          city: string | null
-          state: string | null
-          zip_code: string | null
-          created_at: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          id?: string
-          name: string
-          ein: string
-          address?: string | null
-          city?: string | null
-          state?: string | null
-          zip_code?: string | null
-          created_at?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          id?: string
-          name?: string
-          ein?: string
-          address?: string | null
-          city?: string | null
-          state?: string | null
-          zip_code?: string | null
-          created_at?: string | null
-          updated_at?: string | null
-        }
-      }
-      employees: {
-        Row: {
-          id: string
+          amount: number
+          description: string | null
+          timestamp: string | null
           user_id: string | null
-          company_id: string | null
-          first_name: string
-          last_name: string
-          email: string
-          department: string | null
-          position: string | null
-          hire_date: string
-          termination_date: string | null
-          status: string | null
-          salary_type: string
-          salary_amount: number
-          role: string | null
-          created_at: string | null
-          updated_at: string | null
         }
         Insert: {
           id?: string
+          amount: number
+          description?: string | null
+          timestamp?: string | null
           user_id?: string | null
-          company_id?: string | null
-          first_name: string
-          last_name: string
-          email: string
-          department?: string | null
-          position?: string | null
-          hire_date: string
-          termination_date?: string | null
-          status?: string | null
-          salary_type: string
-          salary_amount: number
-          role?: string | null
-          created_at?: string | null
-          updated_at?: string | null
         }
         Update: {
           id?: string
+          amount?: number
+          description?: string | null
+          timestamp?: string | null
           user_id?: string | null
-          company_id?: string | null
-          first_name?: string
-          last_name?: string
-          email?: string
-          department?: string | null
-          position?: string | null
-          hire_date?: string
-          termination_date?: string | null
-          status?: string | null
-          salary_type?: string
-          salary_amount?: number
-          role?: string | null
-          created_at?: string | null
-          updated_at?: string | null
         }
       }
+      payroll_entries: {
+        Row: {
+          id: string
+          employee_id: string
+          amount: number
+          type: string
+          period_start: string
+          period_end: string
+          user_id: string | null
+        }
+        Insert: {
+          id?: string
+          employee_id: string
+          amount: number
+          type: string
+          period_start: string
+          period_end: string
+          user_id?: string | null
+        }
+        Update: {
+          id?: string
+          employee_id?: string
+          amount?: number
+          type?: string
+          period_start?: string
+          period_end?: string
+          user_id?: string | null
+        }
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
     }
   }
 }
