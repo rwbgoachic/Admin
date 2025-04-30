@@ -1,17 +1,19 @@
-// This file is a placeholder for the centralized analytics system
-// In a real implementation, this would integrate with the centralized analytics system
+import { Analytics } from '@vercel/analytics/react';
 
-export const trackPageView = (url: string) => {
-  // In a real implementation, this would call the centralized analytics system
-  console.log(`Page view: ${url}`);
-};
+export function initAnalytics() {
+  return <Analytics />;
+}
 
-export const trackBlogView = (postId: string, title: string) => {
-  // In a real implementation, this would call the centralized analytics system
-  console.log(`Blog view: ${postId} - ${title}`);
-};
+// Custom event tracking
+export function trackEvent(eventName: string, properties?: Record<string, any>) {
+  if (typeof window !== 'undefined' && (window as any).va) {
+    (window as any).va.track(eventName, properties);
+  }
+}
 
-export const trackBlogShare = (postId: string, platform: string) => {
-  // In a real implementation, this would call the centralized analytics system
-  console.log(`Blog share: ${postId} - ${platform}`);
-};
+// Page view tracking
+export function trackPageView(url: string) {
+  if (typeof window !== 'undefined' && (window as any).va) {
+    (window as any).va.track('pageview', { path: url });
+  }
+}

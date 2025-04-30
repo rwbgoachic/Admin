@@ -1,33 +1,30 @@
-import React, { ReactNode } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useAdmin } from '../../contexts/AdminContext';
+import LoadingSpinner from '../LoadingSpinner';
 
-interface ProtectedRouteProps {
-  isAuthenticated: boolean;
-  requiredRole?: string;
-  children: ReactNode;
+export default function ProtectedRoute({ children }: { children: JSX.Element }) {
+  const { user, loading: authLoading } = useAuth();
+  const { isAdmin, loading: adminLoading } = useAdmin();
+  const location = useLocation();
+
+  if (authLoading || adminLoading) {
+    return <LoadingSpinner />;
+  }
+
+  if (!user) {
+    return <Navigate to="/auth/login" state={{ from: location }} replace />;
+  }
+
+  // If user is an admin and trying to access non-admin routes, redirect to admin dashboard
+  if (isAdmin && !location.pathname.startsWith('/admin')) {
+    return <Navigate to="/admin/analytics" replace />;
+  }
+
+  // If user is not an admin and trying to access admin routes, redirect to dashboard
+  if (!isAdmin && location.pathname.startsWith('/admin')) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return children;
 }
-
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
-  isAuthenticated, 
-  requiredRole,
-  children 
-}) => {
-  const { user, hasRole } = useAuth();
-  
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-  
-  // Check if a specific role is required
-  if (requiredRole && user) {
-    if (!hasRole(requiredRole)) {
-      // Redirect to dashboard if user doesn't have the required role
-      return <Navigate to="/app" replace />;
-    }
-  }
-
-  return <>{children}</>;
-};
-
-export default ProtectedRoute;

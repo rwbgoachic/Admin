@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+
+# Disallow admin and authentication pages
+Disallow: /admin/
+Disallow: /auth/
+Disallow: /settings/
+Disallow: /onboarding/
+
+# Allow crawling of blog content
+Allow: /blog/
+
+# Sitemap
+Sitemap: https://paysurity.com/sitemap.xml

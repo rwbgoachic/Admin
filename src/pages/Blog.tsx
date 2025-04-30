@@ -1,105 +1,133 @@
-import React, { useEffect, useState } from 'react';
-import { Helmet } from 'react-helmet-async';
-import BlogCard from '../components/blog/BlogCard';
-import BlogSearch from '../components/blog/BlogSearch';
-import TagFilter from '../components/blog/TagFilter';
-import { BlogService } from '../services/blogService';
-import { trackPageView } from '../utils/analytics';
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
+import { format } from 'date-fns';
+import NewsSection from '../components/blog/NewsSection';
 
-const Blog: React.FC = () => {
+interface BlogPost {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  published_at: string;
+  author: {
+    email: string;
+  };
+  categories: {
+    name: string;
+    slug: string;
+  }[];
+}
+
+export default function Blog() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedTag, setSelectedTag] = useState<string | null>(null);
 
   useEffect(() => {
-    loadBlogPosts();
-    trackPageView('/blog');
-  }, []);
+    async function fetchPosts() {
+      try {
+        const { data, error } = await supabase
+          .from('blog_posts')
+          .select(`
+            id,
+            title,
+            slug,
+            excerpt,
+            published_at,
+            author:author_id(email),
+            categories:blog_post_categories(
+              category:blog_categories(name, slug)
+            )
+          `)
+          .eq('published', true)
+          .order('published_at', { ascending: false });
 
-  const loadBlogPosts = async () => {
-    try {
-      setLoading(true);
-      setError('');
+        if (error) throw error;
 
-      const blogPosts = await BlogService.getBlogPosts();
-      setPosts(blogPosts.map(post => ({
-        ...post,
-        publishedAt: new Date(post.published_at),
-        readTime: Math.ceil(post.content.split(' ').length / 200)
-      })));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load blog posts');
-    } finally {
-      setLoading(false);
+        setPosts(data || []);
+      } catch (error) {
+        console.error('Error fetching blog posts:', error);
+      } finally {
+        setLoading(false);
+      }
     }
-  };
 
-  const filteredPosts = posts.filter(post => {
-    const matchesSearch = searchTerm === '' || 
-      post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      post.content.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesTag = !selectedTag || post.tags.includes(selectedTag);
-
-    return matchesSearch && matchesTag;
-  });
-
-  const allTags = Array.from(new Set(posts.flatMap(post => post.tags)));
+    fetchPosts();
+  }, []);
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Loading blog posts...</div>
+      <div className="min-h-screen bg-gray-50 py-12">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="animate-pulse space-y-8">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-white p-6 rounded-lg shadow">
+                <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
+                <div className="h-4 bg-gray-200 rounded w-full"></div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <>
-      <Helmet>
-        <title>Blog | PaySurity - Modern Payroll Software</title>
-        <meta name="description" content="Stay updated with the latest payroll trends, tax compliance updates, and best practices." />
-      </Helmet>
+    <div className="min-h-screen bg-gray-50 py-12">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-12">
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+            Latest Updates & Insights
+          </h1>
+          <p className="mt-4 text-lg text-gray-600">
+            Stay up to date with the latest news, updates, and insights from PaySurity.
+          </p>
+        </div>
 
-      <div className="min-h-screen bg-gray-50 py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">
-              PaySurity Blog
-            </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Stay updated with the latest payroll trends, tax compliance updates, and best practices.
-            </p>
-          </div>
-
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 space-y-4 md:space-y-0">
-            <BlogSearch value={searchTerm} onChange={setSearchTerm} />
-            <TagFilter tags={allTags} selectedTag={selectedTag} onTagSelect={setSelectedTag} />
-          </div>
-
-          {error && (
-            <div className="bg-error/10 border border-error/20 text-error px-4 py-3 rounded mb-6">
-              {error}
+        <div className="grid gap-8 lg:grid-cols-3">
+          <div className="lg:col-span-2">
+            <div className="grid gap-8 md:grid-cols-2">
+              {posts.map((post) => (
+                <article
+                  key={post.id}
+                  className="bg-white rounded-lg shadow overflow-hidden hover:shadow-lg transition-shadow duration-300"
+                >
+                  <div className="p-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      {post.categories?.map(({ category }) => (
+                        <Link
+                          key={category.slug}
+                          to={`/blog/category/${category.slug}`}
+                          className="text-xs font-medium text-primary-600 hover:text-primary-500 bg-primary-50 px-2 py-1 rounded-full"
+                        >
+                          {category.name}
+                        </Link>
+                      ))}
+                    </div>
+                    <Link to={`/blog/${post.slug}`}>
+                      <h2 className="text-xl font-semibold text-gray-900 mb-2 hover:text-primary-600">
+                        {post.title}
+                      </h2>
+                    </Link>
+                    <p className="text-gray-600 mb-4 line-clamp-3">{post.excerpt}</p>
+                    <div className="flex items-center justify-between text-sm text-gray-500">
+                      <span>{post.author.email}</span>
+                      <time dateTime={post.published_at}>
+                        {format(new Date(post.published_at), 'MMM d, yyyy')}
+                      </time>
+                    </div>
+                  </div>
+                </article>
+              ))}
             </div>
-          )}
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredPosts.map(post => (
-              <BlogCard key={post.id} post={post} />
-            ))}
           </div>
-
-          {filteredPosts.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-gray-500">No blog posts found matching your criteria.</p>
-            </div>
-          )}
+          
+          <div className="lg:col-span-1">
+            <NewsSection />
+          </div>
         </div>
       </div>
-    </>
+    </div>
   );
-};
-
-export default Blog;
+}
