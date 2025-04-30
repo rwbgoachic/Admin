@@ -20,7 +20,8 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+    "noUncheckedIndexAccess": true
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["src/stories", "**/*.stories.tsx"]
 }

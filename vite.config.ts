@@ -1,43 +1,30 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import dts from 'vite-plugin-dts';
+import { resolve } from 'path';
 
 export default defineConfig({
-  plugins: [react()],
-  server: {
-    host: true,
-    port: 3000,
-    strictPort: false,
-    hmr: {
-      timeout: 30000, // Increase timeout to 30 seconds
-      clientPort: 443
-    }
-  },
-  preview: {
-    port: 3000,
-    strictPort: false,
-    host: true,
-  },
+  plugins: [
+    react(),
+    dts({
+      include: ['src'],
+      exclude: ['src/**/*.stories.tsx', 'src/**/*.test.ts'],
+    }),
+  ],
   build: {
-    sourcemap: true,
+    lib: {
+      entry: resolve(__dirname, 'src/index.ts'),
+      name: 'PaysurityAdminUI',
+      fileName: (format) => `index.${format}.js`,
+    },
     rollupOptions: {
+      external: ['react', 'react-dom'],
       output: {
-        manualChunks: undefined,
+        globals: {
+          react: 'React',
+          'react-dom': 'ReactDOM',
+        },
       },
     },
   },
-  optimizeDeps: {
-    include: [
-      'chart.js',
-      'react-chartjs-2',
-      'react-icons',
-      '@heroicons/react/24/outline',
-      '@headlessui/react',
-      'react-router-dom',
-      'formik',
-      'yup',
-      '@tiptap/react',
-      '@tiptap/starter-kit',
-      'date-fns'
-    ]
-  }
-})
+});
