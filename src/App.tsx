@@ -1,68 +1,35 @@
-import { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { HelmetProvider } from 'react-helmet-async';
-import { Toaster } from 'react-hot-toast';
-import { Auth } from './components/Auth';
-import { Dashboard } from './pages/Dashboard';
-import { SuperAdmin } from './pages/admin/SuperAdmin';
-import { TestArea } from './pages/admin/TestArea';
-import { useAuthStore } from './lib/store';
-
-function PrivateRoute({ children }: { children: React.ReactNode }) {
-  const user = useAuthStore((state) => state.user);
-  return user ? <>{children}</> : <Navigate to="/auth" />;
-}
+import { Button, Input } from './components'
 
 function App() {
-  const initialize = useAuthStore((state) => state.initialize);
-  const loading = useAuthStore((state) => state.loading);
-
-  useEffect(() => {
-    initialize();
-  }, [initialize]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
-      </div>
-    );
-  }
-
   return (
-    <HelmetProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/auth" element={<Auth />} />
-          <Route
-            path="/"
-            element={
-              <PrivateRoute>
-                <Dashboard />
-              </PrivateRoute>
-            }
+    <div style={{ padding: 'var(--spacing-lg)' }}>
+      <h1>PaySurity UI Components</h1>
+      
+      <div style={{ marginBottom: 'var(--spacing-lg)' }}>
+        <h2>Buttons</h2>
+        <div style={{ display: 'flex', gap: 'var(--spacing-md)' }}>
+          <Button>Primary Button</Button>
+          <Button variant="secondary">Secondary Button</Button>
+        </div>
+      </div>
+
+      <div>
+        <h2>Form Inputs</h2>
+        <div style={{ maxWidth: '300px' }}>
+          <Input
+            label="Example Input"
+            placeholder="Type something..."
           />
-          <Route
-            path="/admin"
-            element={
-              <PrivateRoute>
-                <SuperAdmin />
-              </PrivateRoute>
-            }
+          <div style={{ height: 'var(--spacing-md)' }} />
+          <Input
+            label="Input with Error"
+            error="This field is required"
+            placeholder="Type something..."
           />
-          <Route
-            path="/admin/test"
-            element={
-              <PrivateRoute>
-                <TestArea />
-              </PrivateRoute>
-            }
-          />
-        </Routes>
-      </BrowserRouter>
-      <Toaster position="top-right" />
-    </HelmetProvider>
-  );
+        </div>
+      </div>
+    </div>
+  )
 }
 
-export default App;
+export default App

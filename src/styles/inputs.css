@@ -1,0 +1,5 @@
+:root {
+  --input-border: 1px solid #e2e8f0;
+  --input-focus: 1px solid #2563eb;
+  --input-error: 1px solid #dc2626;
+}

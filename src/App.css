@@ -1,42 +1,64 @@
-#root {
-  max-width: 1280px;
+:root {
+  --primary-color: var(--color-primary);
+  --danger-color: var(--color-danger);
+}
+
+.container {
+  width: 100%;
+  max-width: 600px;
   margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  padding: var(--spacing-lg);
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.auth-container {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  padding: var(--spacing-lg);
+  background: white;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.add-todo {
+  display: flex;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
 }
 
-.card {
-  padding: 2em;
+.todo-list {
+  list-style: none;
+  padding: 0;
 }
 
-.read-the-docs {
-  color: #888;
+.todo-list li {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  border: 1px solid color-mix(in srgb, currentColor 15%, transparent);
+  margin-bottom: var(--spacing-sm);
+  border-radius: var(--radius-md);
+}
+
+.todo-list li.completed span {
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+.todo-list li input[type="checkbox"] {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin: 0;
+}
+
+.todo-list li span {
+  flex: 1;
 }
