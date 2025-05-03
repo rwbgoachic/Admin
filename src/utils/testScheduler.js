@@ -2,14 +2,14 @@ const parser = require('cron-parser');
 const { spawn } = require('child_process');
 
 class TestScheduler {
-  constructor(cronPattern, testSuite) {
+  constructor(cronPattern, testSuites) {
     this.cronPattern = cronPattern;
-    this.testSuite = testSuite;
+    this.testSuites = Array.isArray(testSuites) ? testSuites : [testSuites];
     this.interval = parser.parseExpression(cronPattern);
   }
 
   start() {
-    console.log(`Test scheduler initialized for "${this.testSuite}" suite`);
+    console.log(`Test scheduler initialized for suites: ${this.testSuites.join(', ')}`);
     console.log(`Next test run scheduled for: ${this.interval.next().toString()}`);
     
     setInterval(() => {
@@ -24,25 +24,27 @@ class TestScheduler {
   }
 
   runTests() {
-    console.log(`Running test suite: ${this.testSuite}`);
-    const test = spawn('npm', ['test', this.testSuite]);
+    this.testSuites.forEach(suite => {
+      console.log(`Running test suite: ${suite}`);
+      const test = spawn('npm', ['test', suite]);
 
-    test.stdout.on('data', (data) => {
-      console.log(`Test output: ${data}`);
-    });
+      test.stdout.on('data', (data) => {
+        console.log(`Test output (${suite}): ${data}`);
+      });
 
-    test.stderr.on('data', (data) => {
-      console.error(`Test error: ${data}`);
-    });
+      test.stderr.on('data', (data) => {
+        console.error(`Test error (${suite}): ${data}`);
+      });
 
-    test.on('close', (code) => {
-      console.log(`Test process exited with code ${code}`);
+      test.on('close', (code) => {
+        console.log(`Test process for ${suite} exited with code ${code}`);
+      });
     });
   }
 }
 
-// Initialize the scheduler with "0 3 * * *" (3 AM daily) and "pos-restaurant" test suite
-const scheduler = new TestScheduler("0 3 * * *", "pos-restaurant");
+// Initialize the scheduler with "0 3 * * *" (3 AM daily) and multiple test suites
+const scheduler = new TestScheduler("0 3 * * *", ["payroll", "pos"]);
 scheduler.start();
 
 module.exports = TestScheduler;
