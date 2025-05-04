@@ -3,6 +3,7 @@ import { Grid } from '@paysurity/ui';
 import { RestaurantHealthWidget } from './RestaurantHealthWidget';
 import { TokenUsageWidget } from './TokenUsageWidget';
 import { OfflineModeWidget } from './OfflineModeWidget';
+import { CommissionRateWidget } from './CommissionRateWidget';
 
 export const SystemHealth: React.FC = () => {
   return (
@@ -15,6 +16,9 @@ export const SystemHealth: React.FC = () => {
       </Grid>
       <Grid item xs={12} md={6}>
         <OfflineModeWidget />
+      </Grid>
+      <Grid item xs={12} md={6}>
+        <CommissionRateWidget />
       </Grid>
     </Grid>
   );
