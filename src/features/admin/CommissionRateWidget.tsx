@@ -8,9 +8,11 @@ export const CommissionRateWidget: React.FC = () => {
   const [newRate, setNewRate] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [history, setHistory] = useState<any[]>([]);
 
   useEffect(() => {
     fetchCurrentRate();
+    fetchRateHistory();
   }, []);
 
   const fetchCurrentRate = async () => {
@@ -29,14 +31,34 @@ export const CommissionRateWidget: React.FC = () => {
     }
   };
 
+  const fetchRateHistory = async () => {
+    try {
+      const logs = await AuditService.getEntityHistory(
+        'system_settings',
+        'delivery_commission_rate'
+      );
+      setHistory(logs);
+    } catch (err) {
+      console.error('Error fetching rate history:', err);
+    }
+  };
+
+  const validateRate = (value: number): string | null => {
+    if (isNaN(value)) return 'Rate must be a number';
+    if (value < 0) return 'Rate cannot be negative';
+    if (value > 10) return 'Rate cannot exceed 10%';
+    return null;
+  };
+
   const handleRateUpdate = async () => {
     try {
       setLoading(true);
       setError(null);
       
       const newRateNum = parseFloat(newRate);
-      if (isNaN(newRateNum) || newRateNum < 0) {
-        throw new Error('Invalid rate value');
+      const validationError = validateRate(newRateNum);
+      if (validationError) {
+        throw new Error(validationError);
       }
 
       const { error: updateError } = await supabase
@@ -46,16 +68,20 @@ export const CommissionRateWidget: React.FC = () => {
 
       if (updateError) throw updateError;
 
+      const userId = (await supabase.auth.getUser()).data.user?.id;
+      if (!userId) throw new Error('User not authenticated');
+
       await AuditService.log(
         'update',
         'system_settings',
         'delivery_commission_rate',
-        (await supabase.auth.getUser()).data.user?.id || '',
+        userId,
         { old_rate: rate, new_rate: newRateNum }
       );
 
       setRate(newRateNum);
       setNewRate('');
+      await fetchRateHistory();
     } catch (err) {
       console.error('Error updating commission rate:', err);
       setError(err instanceof Error ? err.message : 'Failed to update rate');
@@ -82,7 +108,8 @@ export const CommissionRateWidget: React.FC = () => {
               type="number"
               size="small"
               error={!!error}
-              helperText={error}
+              helperText={error || 'Enter a rate between 0-10%'}
+              inputProps={{ min: 0, max: 10, step: 0.01 }}
             />
             <Button
               variant="contained"
@@ -92,6 +119,18 @@ export const CommissionRateWidget: React.FC = () => {
               Update Rate
             </Button>
           </Box>
+          {history.length > 0 && (
+            <Box sx={{ mt: 3 }}>
+              <Typography variant="subtitle2" gutterBottom>
+                Rate Change History
+              </Typography>
+              {history.map((log) => (
+                <Typography key={log.id} variant="body2" color="text.secondary">
+                  {new Date(log.created_at).toLocaleString()}: {log.changes.old_rate}% → {log.changes.new_rate}%
+                </Typography>
+              ))}
+            </Box>
+          )}
         </Box>
       </CardContent>
     </Card>
