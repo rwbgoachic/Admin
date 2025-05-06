@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 const port = process.env.PORT || 3000;
+const employeeAPI = require('./src/employeeAPI');
 require('./src/utils/testScheduler');
 
 app.use(express.json());
@@ -20,6 +21,9 @@ app.get('/admin/system-health', (req, res) => {
   
   res.json(healthStatus);
 });
+
+// Mount the employee API routes
+app.use('/api', employeeAPI);
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);

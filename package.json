@@ -1,6 +1,7 @@
 {
   "name": "node-starter",
   "private": true,
+  "version": "3.0.0",
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
