@@ -1,0 +1,3 @@
+:root { --chase-blue: #004C97; --bg-dark: #0A0F24; --text-light: #FFFFFF; }
+body { background: var(--bg-dark); color: var(--text-light); }
+[aria-label] { outline: 2px solid var(--chase-blue) !important; }
